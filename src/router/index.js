@@ -1,27 +1,56 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import index from '@/views/Index.vue'
 
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    name: 'index',
+    component: index,
+    redirect:'/information',
+    children:[
+      {
+        path: '/information',
+        name: 'information',
+        component: () => import('@/components/Information.vue')
+      },
+      {
+        path: '/signature',
+        name: 'signature',
+        component: () => import('../components/Signature.vue')
+      },
+      {
+        path: '/completion',
+        name: 'completion',
+        component: () => import('../components/CompletionProtocol.vue')
+      },
+    ]
   },
-  {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  }
 ]
 
+const originalPush = VueRouter.prototype.push
+const originalReplace = VueRouter.prototype.replace
+
+VueRouter.prototype.push = function push(location, onResolve, onReject) {
+  if (onResolve || onReject) {
+    return originalPush.call(this, location, onResolve, onReject)
+  }
+  return originalPush.call(this, location).catch(err => err)
+}
+
+
+VueRouter.prototype.replace = function push(location, onResolve, onReject) {
+  if (onResolve || onReject) {
+    return originalReplace.call(this, location, onResolve, onReject)
+  }
+  return originalReplace.call(this, location).catch(err => err)
+}
+
+
 const router = new VueRouter({
-  mode: 'history',
+  mode: 'hash',
   base: process.env.BASE_URL,
   routes
 })
